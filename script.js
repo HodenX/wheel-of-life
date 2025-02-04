@@ -236,7 +236,16 @@ document.addEventListener('DOMContentLoaded', function() {
     function generateShareLink() {
         const scores = Array.from(inputs).map(input => parseInt(input.value));
         const encodedData = btoa(JSON.stringify(scores));
-        return `${window.location.origin}${window.location.pathname}?data=${encodedData}`;
+        
+        // 如果是在 GitHub Pages 上
+        if (window.location.hostname.includes('github.io')) {
+            return `${window.location.origin}${window.location.pathname}?data=${encodedData}`;
+        }
+        // 如果是本地开发环境，使用 GitHub Pages URL（请替换为您的 GitHub 用户名）
+        else {
+            // TODO: 将 YOUR_USERNAME 替换为您的 GitHub 用户名
+            return `https://HodenX.github.io/wheel-of-life/?data=${encodedData}`;
+        }
     }
 
     // 复制文本到剪贴板
