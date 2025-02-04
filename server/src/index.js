@@ -4,18 +4,22 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const userRoutes = require('./routes/user.routes');
+const assessmentRoutes = require('./routes/assessment.routes');
 
 const app = express();
 
 // 中间件
-app.use(cors());
 app.use(express.json());
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS.split(','),
+  credentials: true
+}));
 
 // 数据库连接
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/wheel-of-life', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('MongoDB 连接成功'))
+  .catch(err => console.error('MongoDB 连接失败:', err));
 
 // 用户模型
 const userSchema = new mongoose.Schema({
@@ -191,7 +195,18 @@ app.get('/api/admin/export', auth, adminAuth, async (req, res) => {
     }
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log(`服务器运行在端口 ${port}`);
+// 路由
+app.use('/api/users', userRoutes);
+app.use('/api/assessments', assessmentRoutes);
+
+// 错误处理中间件
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: '服务器内部错误', error: err.message });
+});
+
+// 启动服务器
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`服务器运行在端口 ${PORT}`);
 }); 
