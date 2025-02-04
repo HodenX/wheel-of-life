@@ -1,3 +1,104 @@
+// API 配置
+const API_CONFIG = {
+    development: {
+        baseUrl: 'http://localhost:3000/api'
+    },
+    production: {
+        baseUrl: 'https://your-backend-url.com/api' // 这里需要替换为实际的后端服务地址
+    }
+};
+
+// 获取当前环境的 API 配置
+const getApiConfig = () => {
+    const isProduction = window.location.hostname !== 'localhost' && 
+                        !window.location.hostname.includes('127.0.0.1');
+    return isProduction ? API_CONFIG.production : API_CONFIG.development;
+};
+
+// API 请求函数
+const api = {
+    async request(endpoint, options = {}) {
+        const config = getApiConfig();
+        const token = localStorage.getItem('token');
+        
+        const defaultOptions = {
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            }
+        };
+
+        try {
+            const response = await fetch(`${config.baseUrl}${endpoint}`, {
+                ...defaultOptions,
+                ...options
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('API request failed:', error);
+            throw error;
+        }
+    },
+
+    // 用户相关 API
+    async register(username, password) {
+        return this.request('/register', {
+            method: 'POST',
+            body: JSON.stringify({ username, password })
+        });
+    },
+
+    async login(username, password) {
+        return this.request('/login', {
+            method: 'POST',
+            body: JSON.stringify({ username, password })
+        });
+    },
+
+    // 评估相关 API
+    async saveAssessment(scores, note) {
+        return this.request('/assessments', {
+            method: 'POST',
+            body: JSON.stringify({ scores, note })
+        });
+    },
+
+    async getAssessments() {
+        return this.request('/assessments');
+    },
+
+    // 管理员 API
+    async getUsers() {
+        return this.request('/admin/users');
+    },
+
+    async getAdminAssessments(filter = 'all') {
+        return this.request(`/admin/assessments?filter=${filter}`);
+    },
+
+    async exportData() {
+        const config = getApiConfig();
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(`${config.baseUrl}/admin/export`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return response.blob();
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     // 获取所有输入元素和显示值的元素
     const inputs = document.querySelectorAll('input[type="range"]');
@@ -307,22 +408,169 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 保存结果
-    saveBtn.addEventListener('click', function() {
-        const data = Array.from(inputs).map(input => parseInt(input.value));
-        const date = new Date().toISOString().split('T')[0];
-        const saveData = {
-            date: date,
-            scores: data
-        };
-        
-        // 获取已有的保存数据
-        let savedResults = JSON.parse(localStorage.getItem('wheelOfLife') || '[]');
-        savedResults.push(saveData);
-        localStorage.setItem('wheelOfLife', JSON.stringify(savedResults));
-        
-        alert('评估结果已保存！');
+    // 更新保存按钮的处理函数
+    saveBtn.addEventListener('click', async function() {
+        try {
+            const scores = Array.from(inputs).map(input => parseInt(input.value));
+            await api.saveAssessment(scores);
+            alert('评估结果已保存！');
+        } catch (error) {
+            if (error.message.includes('401')) {
+                alert('请先登录后再保存');
+                document.getElementById('loginModal').style.display = 'block';
+            } else {
+                alert('保存失败，请稍后重试');
+            }
+        }
     });
+
+    // 添加登录处理
+    document.getElementById('submitLogin').addEventListener('click', async function() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        try {
+            const response = await api.login(username, password);
+            localStorage.setItem('token', response.token);
+            localStorage.setItem('user', JSON.stringify(response.user));
+            document.getElementById('loginModal').style.display = 'none';
+            updateAuthUI();
+        } catch (error) {
+            alert('登录失败：' + error.message);
+        }
+    });
+
+    // 添加注册处理
+    document.getElementById('submitRegister').addEventListener('click', async function() {
+        const username = document.getElementById('newUsername').value;
+        const password = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (password !== confirmPassword) {
+            alert('两次输入的密码不一致');
+            return;
+        }
+        
+        try {
+            const response = await api.register(username, password);
+            localStorage.setItem('token', response.token);
+            localStorage.setItem('user', JSON.stringify(response.user));
+            document.getElementById('registerModal').style.display = 'none';
+            updateAuthUI();
+        } catch (error) {
+            alert('注册失败：' + error.message);
+        }
+    });
+
+    // 更新界面显示
+    function updateAuthUI() {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        
+        if (user) {
+            loginBtn.textContent = '退出';
+            registerBtn.style.display = 'none';
+            
+            if (user.isAdmin) {
+                document.getElementById('adminPanel').style.display = 'block';
+                loadAdminData();
+            }
+        } else {
+            loginBtn.textContent = '登录';
+            registerBtn.style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+    }
+
+    // 加载管理员数据
+    async function loadAdminData() {
+        try {
+            const assessments = await api.getAdminAssessments();
+            displayAdminData(assessments);
+        } catch (error) {
+            console.error('Failed to load admin data:', error);
+        }
+    }
+
+    // 显示管理员数据
+    function displayAdminData(assessments) {
+        const userList = document.getElementById('userList');
+        userList.innerHTML = '';
+        
+        const users = new Map();
+        assessments.forEach(assessment => {
+            if (!users.has(assessment.userId._id)) {
+                users.set(assessment.userId._id, {
+                    username: assessment.userId.username,
+                    assessments: []
+                });
+            }
+            users.get(assessment.userId._id).assessments.push(assessment);
+        });
+        
+        users.forEach((userData, userId) => {
+            const userItem = document.createElement('div');
+            userItem.className = 'user-item';
+            userItem.textContent = userData.username;
+            userItem.onclick = () => showUserDetails(userData);
+            userList.appendChild(userItem);
+        });
+    }
+
+    // 显示用户详细信息
+    function showUserDetails(userData) {
+        const userDetails = document.getElementById('userDetails');
+        userDetails.innerHTML = `
+            <h3>${userData.username} 的评估历史</h3>
+            <div class="assessment-history">
+                ${userData.assessments.map(assessment => `
+                    <div class="assessment-card">
+                        <div class="assessment-date">
+                            ${new Date(assessment.date).toLocaleString()}
+                        </div>
+                        <canvas id="chart_${assessment._id}"></canvas>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        
+        // 为每个评估创建图表
+        userData.assessments.forEach(assessment => {
+            const ctx = document.getElementById(`chart_${assessment._id}`).getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: areas,
+                    datasets: [{
+                        label: '评分',
+                        data: assessment.scores,
+                        backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                        borderColor: 'rgba(46, 204, 113, 1)',
+                        pointBackgroundColor: 'rgba(46, 204, 113, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(46, 204, 113, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { display: true },
+                            suggestedMin: 0,
+                            suggestedMax: 10
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        });
+    }
+
+    // 初始化界面
+    updateAuthUI();
 
     // 重置所有值
     resetBtn.addEventListener('click', function() {
