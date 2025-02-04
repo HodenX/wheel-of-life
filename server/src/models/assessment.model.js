@@ -1,73 +1,37 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+const User = require('./user.model');
 
-const assessmentSchema = new mongoose.Schema({
+const Assessment = sequelize.define('Assessment', {
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  scores: {
-    health: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 10
-    },
-    career: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 10
-    },
-    finance: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 10
-    },
-    family: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 10
-    },
-    relationships: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 10
-    },
-    growth: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 10
-    },
-    recreation: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 10
-    },
-    environment: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 10
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: User,
+      key: 'id'
     }
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  scores: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    validate: {
+      isValidScores(value) {
+        const requiredFields = ['health', 'career', 'finance', 'family', 
+                              'relationships', 'growth', 'recreation', 'environment'];
+        const isValid = requiredFields.every(field => {
+          const score = value[field];
+          return typeof score === 'number' && score >= 1 && score <= 10;
+        });
+        if (!isValid) {
+          throw new Error('Invalid scores format');
+        }
+      }
+    }
   }
 });
 
-// 添加虚拟字段计算平均分
-assessmentSchema.virtual('averageScore').get(function() {
-  const scores = Object.values(this.scores);
-  return scores.reduce((acc, curr) => acc + curr, 0) / scores.length;
-});
-
-const Assessment = mongoose.model('Assessment', assessmentSchema);
+// 建立关联关系
+Assessment.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(Assessment, { foreignKey: 'userId' });
 
 module.exports = Assessment; 
