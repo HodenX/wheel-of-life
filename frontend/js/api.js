@@ -4,7 +4,7 @@ const API_CONFIG = {
     baseURL: 'http://localhost:3000/api'
   },
   production: {
-    baseURL: 'https://wheel-of-life-api.onrender.com/api'  // 替换为你的 Render.com 服务 URL
+    baseURL: 'https://wheel-of-life-api.onrender.com/api'
   }
 };
 
