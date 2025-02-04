@@ -54,9 +54,34 @@ function initChart() {
         ticks: {
           beginAtZero: true,
           max: 10,
-          stepSize: 1
+          min: 0,
+          stepSize: 1,
+          font: {
+            size: 12
+          }
         }
-      }
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            font: {
+              size: 14
+            }
+          }
+        },
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: function(context) {
+              return `分数: ${context.raw}`;
+            }
+          }
+        }
+      },
+      maintainAspectRatio: true,
+      responsive: true
     }
   });
 }
