@@ -3,14 +3,70 @@ const state = {
   user: null,
   chart: null,
   scores: {
-    health: 5,
-    career: 5,
-    finance: 5,
-    family: 5,
-    relationships: 5,
-    growth: 5,
-    recreation: 5,
-    environment: 5
+    health: {
+      score: 5,
+      subItems: {
+        physical: { score: 5, weight: 0.4, label: '身体健康' },
+        mental: { score: 5, weight: 0.3, label: '心理健康' },
+        habits: { score: 5, weight: 0.3, label: '生活习惯' }
+      }
+    },
+    career: {
+      score: 5,
+      subItems: {
+        satisfaction: { score: 5, weight: 0.4, label: '工作满意度' },
+        growth: { score: 5, weight: 0.3, label: '职业发展' },
+        worklife: { score: 5, weight: 0.3, label: '工作生活平衡' }
+      }
+    },
+    finance: {
+      score: 5,
+      subItems: {
+        income: { score: 5, weight: 0.4, label: '收入水平' },
+        savings: { score: 5, weight: 0.3, label: '储蓄投资' },
+        planning: { score: 5, weight: 0.3, label: '财务规划' }
+      }
+    },
+    family: {
+      score: 5,
+      subItems: {
+        relationship: { score: 5, weight: 0.4, label: '家庭关系' },
+        communication: { score: 5, weight: 0.3, label: '沟通质量' },
+        support: { score: 5, weight: 0.3, label: '家庭支持' }
+      }
+    },
+    relationships: {
+      score: 5,
+      subItems: {
+        friends: { score: 5, weight: 0.4, label: '朋友关系' },
+        social: { score: 5, weight: 0.3, label: '社交活动' },
+        intimacy: { score: 5, weight: 0.3, label: '亲密关系' }
+      }
+    },
+    growth: {
+      score: 5,
+      subItems: {
+        learning: { score: 5, weight: 0.4, label: '学习进步' },
+        skills: { score: 5, weight: 0.3, label: '技能提升' },
+        mindset: { score: 5, weight: 0.3, label: '思维成长' }
+      }
+    },
+    recreation: {
+      score: 5,
+      subItems: {
+        hobbies: { score: 5, weight: 0.4, label: '兴趣爱好' },
+        relaxation: { score: 5, weight: 0.3, label: '休闲放松' },
+        entertainment: { score: 5, weight: 0.3, label: '娱乐活动' }
+      }
+    },
+    environment: {
+      score: 5,
+      subItems: {
+        living: { score: 5, weight: 0.4, label: '居住环境' },
+        community: { score: 5, weight: 0.3, label: '社区氛围' },
+        facilities: { score: 5, weight: 0.3, label: '配套设施' }
+      }
+    }
   }
 };
 
@@ -86,25 +142,78 @@ function initChart() {
   });
 }
 
+// 计算主项得分
+function calculateMainScore(area) {
+  const subItems = state.scores[area].subItems;
+  let totalScore = 0;
+  for (const item in subItems) {
+    totalScore += subItems[item].score * subItems[item].weight;
+  }
+  state.scores[area].score = Math.round(totalScore);
+}
+
 // 更新图表数据
 function updateChart() {
-  state.chart.data.datasets[0].data = Object.values(state.scores);
+  const mainScores = Object.keys(state.scores).map(area => state.scores[area].score);
+  state.chart.data.datasets[0].data = mainScores;
   state.chart.update();
 }
 
 // 初始化滑块事件监听
 function initSliders() {
   Object.keys(state.scores).forEach(area => {
-    const slider = document.getElementById(area);
-    const value = slider.nextElementSibling;
+    const areaDiv = document.createElement('div');
+    areaDiv.className = 'area-container';
+    areaDiv.innerHTML = `
+      <h3>${getAreaLabel(area)}</h3>
+      <div class="sub-items">
+        ${Object.entries(state.scores[area].subItems).map(([key, item]) => `
+          <div class="sub-item">
+            <label>${item.label}</label>
+            <input type="range" min="1" max="10" value="${item.score}" 
+                   id="${area}-${key}" class="slider">
+            <span class="score-value">${item.score}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="main-score">
+        <strong>总评分：</strong>
+        <span id="${area}-main-score">${state.scores[area].score}</span>
+      </div>
+    `;
     
-    slider.addEventListener('input', (e) => {
-      const score = parseInt(e.target.value);
-      state.scores[area] = score;
-      value.textContent = score;
-      updateChart();
+    document.getElementById('sliders-container').appendChild(areaDiv);
+    
+    // 为子项滑块添加事件监听
+    Object.keys(state.scores[area].subItems).forEach(subItem => {
+      const slider = document.getElementById(`${area}-${subItem}`);
+      const value = slider.nextElementSibling;
+      
+      slider.addEventListener('input', (e) => {
+        const score = parseInt(e.target.value);
+        state.scores[area].subItems[subItem].score = score;
+        value.textContent = score;
+        calculateMainScore(area);
+        document.getElementById(`${area}-main-score`).textContent = state.scores[area].score;
+        updateChart();
+      });
     });
   });
+}
+
+// 获取领域标签
+function getAreaLabel(area) {
+  const labels = {
+    health: '健康与活力',
+    career: '事业与工作',
+    finance: '财务状况',
+    family: '家庭关系',
+    relationships: '人际关系',
+    growth: '个人成长',
+    recreation: '休闲娱乐',
+    environment: '生活环境'
+  };
+  return labels[area];
 }
 
 // 用户认证相关函数
@@ -188,10 +297,24 @@ const assessment = {
   // 重置评估
   reset: () => {
     Object.keys(state.scores).forEach(area => {
-      state.scores[area] = 5;
-      const slider = document.getElementById(area);
-      slider.value = 5;
-      slider.nextElementSibling.textContent = 5;
+      state.scores[area].score = 5;
+      state.scores[area].subItems = {
+        physical: { score: 5, weight: 0.4, label: '身体健康' },
+        mental: { score: 5, weight: 0.3, label: '心理健康' },
+        habits: { score: 5, weight: 0.3, label: '生活习惯' }
+      };
+      const areaDiv = document.querySelector(`.area-container[data-area="${area}"]`);
+      if (areaDiv) {
+        const subItems = areaDiv.querySelectorAll('.sub-item');
+        subItems.forEach(item => {
+          const slider = item.querySelector('.slider');
+          slider.value = 5;
+          const value = item.querySelector('.score-value');
+          value.textContent = 5;
+        });
+        const mainScore = areaDiv.querySelector('.main-score');
+        mainScore.querySelector('span').textContent = 5;
+      }
     });
     updateChart();
   }
@@ -366,10 +489,24 @@ function loadSharedAssessment() {
     if (value) {
       hasParams = true;
       const score = parseInt(value);
-      state.scores[area] = score;
-      const slider = document.getElementById(area);
-      slider.value = score;
-      slider.nextElementSibling.textContent = score;
+      state.scores[area].score = score;
+      state.scores[area].subItems = {
+        physical: { score: 5, weight: 0.4, label: '身体健康' },
+        mental: { score: 5, weight: 0.3, label: '心理健康' },
+        habits: { score: 5, weight: 0.3, label: '生活习惯' }
+      };
+      const areaDiv = document.querySelector(`.area-container[data-area="${area}"]`);
+      if (areaDiv) {
+        const subItems = areaDiv.querySelectorAll('.sub-item');
+        subItems.forEach(item => {
+          const slider = item.querySelector('.slider');
+          slider.value = score;
+          const value = item.querySelector('.score-value');
+          value.textContent = score;
+        });
+        const mainScore = areaDiv.querySelector('.main-score');
+        mainScore.querySelector('span').textContent = score;
+      }
     }
   });
 

@@ -17,92 +17,25 @@
     </div>
     <div class="container">
         <h1>生命之轮评估</h1>
+        <div class="chart-container">
+            <canvas id="wheelChart"></canvas>
+        </div>
         <div class="description">
-            <p>生命之轮是一个强大的自我评估工具，帮助您了解生活的各个方面是否平衡。请为每个领域评分（1-10分），其中：</p>
+            <p>生命之轮是一个强大的自我评估工具，帮助您了解生活的各个方面。每个领域都细分为具体的评估项目，请为每一项打分（1-10分）：</p>
             <ul>
-                <li>1-3分：非常不满意，需要重点改善</li>
-                <li>4-6分：一般，有提升空间</li>
-                <li>7-8分：满意，但仍可以更好</li>
-                <li>9-10分：非常满意，处于理想状态</li>
+                <li>1-3分：需要重点关注和改进</li>
+                <li>4-6分：状态一般，有提升空间</li>
+                <li>7-8分：状态良好，继续保持</li>
+                <li>9-10分：非常满意，可以分享经验</li>
             </ul>
         </div>
-        <div class="wheel-container">
-            <div class="assessment-form">
-                <div class="areas">
-                    <div class="area-item">
-                        <div class="label-group">
-                            <label for="health">健康与活力</label>
-                            <i class="fas fa-question-circle help-icon" data-area="health"></i>
-                        </div>
-                        <input type="range" id="health" min="1" max="10" value="5">
-                        <span class="value">5</span>
-                    </div>
-                    <div class="area-item">
-                        <div class="label-group">
-                            <label for="career">事业与工作</label>
-                            <i class="fas fa-question-circle help-icon" data-area="career"></i>
-                        </div>
-                        <input type="range" id="career" min="1" max="10" value="5">
-                        <span class="value">5</span>
-                    </div>
-                    <div class="area-item">
-                        <div class="label-group">
-                            <label for="finance">财务状况</label>
-                            <i class="fas fa-question-circle help-icon" data-area="finance"></i>
-                        </div>
-                        <input type="range" id="finance" min="1" max="10" value="5">
-                        <span class="value">5</span>
-                    </div>
-                    <div class="area-item">
-                        <div class="label-group">
-                            <label for="family">家庭关系</label>
-                            <i class="fas fa-question-circle help-icon" data-area="family"></i>
-                        </div>
-                        <input type="range" id="family" min="1" max="10" value="5">
-                        <span class="value">5</span>
-                    </div>
-                    <div class="area-item">
-                        <div class="label-group">
-                            <label for="relationships">人际关系</label>
-                            <i class="fas fa-question-circle help-icon" data-area="relationships"></i>
-                        </div>
-                        <input type="range" id="relationships" min="1" max="10" value="5">
-                        <span class="value">5</span>
-                    </div>
-                    <div class="area-item">
-                        <div class="label-group">
-                            <label for="growth">个人成长</label>
-                            <i class="fas fa-question-circle help-icon" data-area="growth"></i>
-                        </div>
-                        <input type="range" id="growth" min="1" max="10" value="5">
-                        <span class="value">5</span>
-                    </div>
-                    <div class="area-item">
-                        <div class="label-group">
-                            <label for="recreation">休闲娱乐</label>
-                            <i class="fas fa-question-circle help-icon" data-area="recreation"></i>
-                        </div>
-                        <input type="range" id="recreation" min="1" max="10" value="5">
-                        <span class="value">5</span>
-                    </div>
-                    <div class="area-item">
-                        <div class="label-group">
-                            <label for="environment">生活环境</label>
-                            <i class="fas fa-question-circle help-icon" data-area="environment"></i>
-                        </div>
-                        <input type="range" id="environment" min="1" max="10" value="5">
-                        <span class="value">5</span>
-                    </div>
-                </div>
-            </div>
-            <div class="chart-container">
-                <canvas id="wheelChart"></canvas>
-            </div>
+        <div id="sliders-container">
+            <!-- 滑块将通过JavaScript动态生成 -->
         </div>
-        <div class="actions">
-            <button id="saveBtn">保存结果</button>
-            <button id="shareBtn">分享结果</button>
-            <button id="resetBtn">重置</button>
+        <div class="button-group">
+            <button id="saveBtn" class="btn">保存结果</button>
+            <button id="shareBtn" class="btn">分享结果</button>
+            <button id="resetBtn" class="btn">重置评分</button>
         </div>
     </div>
 
