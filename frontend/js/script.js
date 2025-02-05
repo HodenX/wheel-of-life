@@ -516,9 +516,17 @@ function loadSharedAssessment() {
   }
 }
 
-// 事件监听设置
-function setupEventListeners() {
-  // 认证相关
+// 初始化应用
+function initApp() {
+  initChart();
+  initSliders();
+  auth.checkAuthStatus();
+  loadSharedAssessment();
+
+  // 绑定按钮事件
+  elements.saveBtn.addEventListener('click', assessment.save);
+  elements.shareBtn.addEventListener('click', assessment.share);
+  elements.resetBtn.addEventListener('click', assessment.reset);
   elements.loginBtn.addEventListener('click', () => openModal(elements.loginModal));
   elements.registerBtn.addEventListener('click', () => openModal(elements.registerModal));
   elements.submitLogin.addEventListener('click', () => {
@@ -530,7 +538,6 @@ function setupEventListeners() {
     const username = document.getElementById('newUsername').value;
     const password = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
-    
     if (password !== confirmPassword) {
       alert('两次输入的密码不一致');
       return;
@@ -538,71 +545,14 @@ function setupEventListeners() {
     auth.handleRegister(username, password);
   });
 
-  // 关闭按钮
+  // 绑定关闭按钮事件
   elements.closeButtons.forEach(button => {
     button.addEventListener('click', () => {
       const modal = button.closest('.modal');
       closeModal(modal);
     });
   });
-
-  // 操作按钮
-  elements.saveBtn.addEventListener('click', assessment.save);
-  elements.shareBtn.addEventListener('click', assessment.share);
-  elements.resetBtn.addEventListener('click', assessment.reset);
-
-  // 复制分享链接
-  document.getElementById('copyLink').addEventListener('click', () => {
-    const shareLink = document.getElementById('shareLink');
-    shareLink.select();
-    document.execCommand('copy');
-    alert('链接已复制到剪贴板');
-  });
-
-  // 帮助图标
-  document.querySelectorAll('.help-icon').forEach(icon => {
-    icon.addEventListener('click', () => {
-      const area = icon.dataset.area;
-      showHelp(area);
-    });
-  });
 }
 
-// 显示帮助信息
-function showHelp(area) {
-  const helpContent = {
-    health: {
-      title: '健康与活力',
-      content: `
-        <p>评估您的身体和精神健康状况：</p>
-        <ul>
-          <li>体能和精力水平</li>
-          <li>睡眠质量</li>
-          <li>饮食习惯</li>
-          <li>运动频率</li>
-          <li>压力管理</li>
-        </ul>
-      `
-    },
-    // ... 其他领域的帮助内容
-  };
-
-  const content = helpContent[area];
-  if (content) {
-    document.getElementById('modalTitle').textContent = content.title;
-    document.getElementById('modalContent').innerHTML = content.content;
-    openModal(document.getElementById('helpModal'));
-  }
-}
-
-// 初始化应用
-async function initApp() {
-  initChart();
-  initSliders();
-  setupEventListeners();
-  await auth.checkAuthStatus();
-  loadSharedAssessment();
-}
-
-// 启动应用
+// 在DOM加载完成后初始化应用
 document.addEventListener('DOMContentLoaded', initApp); 
