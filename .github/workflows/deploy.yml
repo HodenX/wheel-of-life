@@ -21,4 +21,8 @@ jobs:
         with:
           branch: gh-pages
           folder: frontend
-          clean: true 
+          clean: true
+          clean-exclude: |
+            .nojekyll
+          git-config-name: GitHub Actions
+          git-config-email: github-actions[bot]@users.noreply.github.com 
