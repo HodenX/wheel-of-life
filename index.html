@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生命之轮 - Wheel of Life</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="header">
+        <div class="auth-buttons">
+            <button id="loginBtn" class="auth-btn">登录</button>
+            <button id="registerBtn" class="auth-btn">注册</button>
+        </div>
+    </div>
+    <div class="container">
+        <h1>生命之轮评估</h1>
+        <div class="chart-container">
+            <canvas id="wheelChart"></canvas>
+        </div>
+        <div class="description">
+            <p>生命之轮是一个强大的自我评估工具，帮助您了解生活的各个方面。每个领域都细分为具体的评估项目，请为每一项打分（1-10分）：</p>
+            <ul>
+                <li>1-3分：需要重点关注和改进</li>
+                <li>4-6分：状态一般，有提升空间</li>
+                <li>7-8分：状态良好，继续保持</li>
+                <li>9-10分：非常满意，可以分享经验</li>
+            </ul>
+        </div>
+        <div id="sliders-container">
+            <!-- 滑块将通过JavaScript动态生成 -->
+        </div>
+        <div class="button-group">
+            <button id="saveBtn" class="btn">保存结果</button>
+            <button id="shareBtn" class="btn">分享结果</button>
+            <button id="resetBtn" class="btn">重置评分</button>
+        </div>
+    </div>
+
+    <!-- 管理员面板 -->
+    <div id="adminPanel" class="admin-panel" style="display: none;">
+        <div class="admin-header">
+            <h2>管理员面板</h2>
+            <div class="admin-controls">
+                <select id="userFilter">
+                    <option value="all">所有用户</option>
+                    <option value="today">今日评估</option>
+                    <option value="week">本周评估</option>
+                    <option value="month">本月评估</option>
+                </select>
+                <button id="exportData">导出数据</button>
+            </div>
+        </div>
+        <div class="admin-content">
+            <div id="userList" class="user-list">
+                <!-- 用户列表将通过 JavaScript 动态填充 -->
+            </div>
+            <div id="userDetails" class="user-details">
+                <!-- 选中用户的详细信息将在这里显示 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录弹窗 -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>登录</h2>
+            <div class="login-form">
+                <input type="text" id="username" placeholder="用户名">
+                <input type="password" id="password" placeholder="密码">
+                <button id="submitLogin">登录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册弹窗 -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>注册</h2>
+            <div class="register-form">
+                <input type="text" id="newUsername" placeholder="用户名">
+                <input type="password" id="newPassword" placeholder="密码">
+                <input type="password" id="confirmPassword" placeholder="确认密码">
+                <button id="submitRegister">注册</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分享链接弹窗 -->
+    <div id="shareModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>分享生命之轮</h2>
+            <div class="share-content">
+                <p>复制以下链接分享给他人：</p>
+                <div class="share-link-group">
+                    <input type="text" id="shareLink" readonly>
+                    <button id="copyLink">复制链接</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 帮助说明弹窗 -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html> 
